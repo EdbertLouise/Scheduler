@@ -1,0 +1,5 @@
+- Input with no date but keywords such as tomorrow, next week on Friday, or just a plain day and time
+- I have a church meeting every Friday at 7 pm that lasts 2 hours until the 1st of May
+- I've got a meeting tomorrow at 11 am that might last an hour
+- I got a 4 hour shift on Saturday starting at 3 pm
+- I'm gonna have lunch with a friend on Saturday at 1pm

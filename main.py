@@ -6,9 +6,9 @@ import json
 
 from datetime import datetime
 
-# files = []
-# path = "C:/CS/Scheduler/testfiles/dbmsASSIGN.png"
-# files.append(path)
+files = []
+#path = "C:/CS/Scheduler/testfiles/multimedia.pdf"
+#files.append(path)
 
 #userInput = input()
 
@@ -31,14 +31,14 @@ def processInput(userInput, files):
     #print("HEHA", fileNamesList)
     #print("BUT", fileNamesList)
     result = returnJSON(fileNamesList, userInput)
-    #print("TAHI", result)
+    print("LIST OF JSONn\n", result)
     rawJSlist = json.loads(result)
 
     #print(rawJSlist)
 
     logResults = []
 
-    print("DEBUG", rawJSlist)
+    #print("DEBUG", rawJSlist)
     for rawJS in rawJSlist:
         if not theCalendar(rawJS):
             logResults.append(f"Failed to create event '{rawJS["title"]}'")
@@ -48,6 +48,5 @@ def processInput(userInput, files):
     return logResults
 
 # if __name__ == __main__: 
-# processInput("", files=files)
+#processInput("", files=files)
     
- 

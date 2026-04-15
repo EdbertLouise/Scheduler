@@ -25,6 +25,17 @@ def extractPresent():
 
     return now
 
+def extractDays(days):
+    dayStr = ""
+    for idx, day in enumerate(days):
+        if idx == len(days)-1:
+            dayStr += day
+        else:
+            dayStr = dayStr + day + ','
+
+    return dayStr
+        
+
 def addOne(dt):
     start_date = datetime.strptime(dt, "%Y-%m-%d")
 
@@ -35,6 +46,24 @@ def addOne(dt):
     end_date_str = end_date.strftime("%Y-%m-%d")
 
     return end_date_str
+
+def load_calendar_mapping(file_path):
+    calendar_dict = {}
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue  # skip empty lines
+
+            # split only once (important)
+            parts = line.split(maxsplit=1)
+
+            if len(parts) == 2:
+                name, cal_id = parts
+                calendar_dict[name] = cal_id
+
+    return calendar_dict
 
 '''
 def testCalendar():
@@ -115,27 +144,53 @@ def task(rawJS):
 
 def period(rawJS):
 
-    event = {
-        'summary': rawJS['title'],
-        'location': 'NTHU',
-        'description': rawJS['notes'],
-        'start': {
-            'dateTime': f"{rawJS['startDate']}T{rawJS['startTime']}:00+08:00",
-            'timeZone': 'Asia/Taipei',
-        },
-        'end': {
-            'dateTime': f"{rawJS['endDate']}T{rawJS['endTime']}:00+08:00",
-            'timeZone': 'Asia/Taipei',
-        },
-        'reminders': {
-            'useDefault': False,
-            'overrides': [
-                {'method': 'email', 'minutes': 24 * 60},
-                {'method': 'popup', 'minutes': 10},
-            ],
-        },
-    }
-    print("DEBUG", event)
+    if rawJS['recurring'] == True:
+        event = {
+            'summary': rawJS['title'],
+            'location': 'NTHU',
+            'description': rawJS['notes'],
+            'start': {
+                'dateTime': f"{rawJS['startDate']}T{rawJS['startTime']}:00+08:00",
+                'timeZone': 'Asia/Taipei',
+            },
+            'end': {
+                'dateTime': f"{rawJS['endDate']}T{rawJS['endTime']}:00+08:00",
+                'timeZone': 'Asia/Taipei',
+            },
+            'reminders': {
+                'useDefault': False,
+                'overrides': [
+                    {'method': 'email', 'minutes': 24 * 60},
+                    {'method': 'popup', 'minutes': 10},
+                ],
+            },
+            'recurrence': [
+                f"RRULE:FREQ=WEEKLY;BYDAY={extractDays(rawJS['recurrence_days'])};UNTIL={rawJS['until']}T235959Z"
+            ]
+        }
+    else:
+        event = {
+            'summary': rawJS['title'],
+            'location': 'NTHU',
+            'description': rawJS['notes'],
+            'start': {
+                'dateTime': f"{rawJS['startDate']}T{rawJS['startTime']}:00+08:00",
+                'timeZone': 'Asia/Taipei',
+            },
+            'end': {
+                'dateTime': f"{rawJS['endDate']}T{rawJS['endTime']}:00+08:00",
+                'timeZone': 'Asia/Taipei',
+            },
+            'reminders': {
+                'useDefault': False,
+                'overrides': [
+                    {'method': 'email', 'minutes': 24 * 60},
+                    {'method': 'popup', 'minutes': 10},
+                ],
+            },
+        }
+
+    #print("DEBUG: EVENT SENT\n", event, "\n\n")
 
     return event
 
@@ -161,7 +216,7 @@ def theCalendar(rawJS):
     try:
         service = build("calendar", "v3", credentials=creds) 
 
-        #checkCalendarList(service)
+        checkCalendarList(service)
 
         if rawJS['endTime'] == None and rawJS['startTime'] == None:
             print("Task identified")
@@ -172,8 +227,10 @@ def theCalendar(rawJS):
         else:
             print("Wrong date format")
             return False
+        
+        calendars = load_calendar_mapping("calendars.txt")
     
-        event = service.events().insert(calendarId='4de43edb31f4137cd7f9bd5acabe09febac29f8d5c9ee9c7ff532e2fb8f47ca3@group.calendar.google.com', body=event).execute()
+        event = service.events().insert(calendarId=calendars[rawJS['category']], body=event).execute()
 
         print('Task/Event created succesfully')
         return True
